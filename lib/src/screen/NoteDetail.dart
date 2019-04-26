@@ -16,31 +16,27 @@ class NoteDetail extends StatefulWidget {
 }
 
 class NoteDetailState extends State<NoteDetail> {
+  var _formKey = GlobalKey<FormState>();
   var _priority = ['High', 'Low'];
   DatabaseHelper databaseHelper = DatabaseHelper();
-
   Note note;
   String stAppbarTitle;
 
   TextEditingController tecTitle = TextEditingController();
   TextEditingController tecDescription = TextEditingController();
 
-
   NoteDetailState(this.note, this.stAppbarTitle);
 
   @override
   Widget build(BuildContext context) {
-    TextStyle textStyle = Theme
-        .of(context)
-        .textTheme
-        .title;
+    TextStyle textStyle = Theme.of(context).textTheme.title;
     this.tecTitle.text = this.note.title;
     this.tecDescription.text = this.note.description;
 
     return WillPopScope(
-        onWillPop: () {
-          moveToLastScreen();
-        },
+      onWillPop: () {
+        moveToLastScreen();
+      },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -51,107 +47,115 @@ class NoteDetailState extends State<NoteDetail> {
           ),
           title: Text(stAppbarTitle),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Padding(
+        body: Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton(
+                        items: _priority.map((String dropdownStringItem) {
+                          return DropdownMenuItem<String>(
+                            value: dropdownStringItem,
+                            child: Text(dropdownStringItem),
+                          );
+                        }).toList(),
+                        style: textStyle,
+                        value: getPriorityAsString(note.priority),
+                        onChanged: (value) {
+                          setState(() {
+                            updatePriorityAsInt(value);
+                          });
+                        },
+                      ),
+                    )),
+                //children: edit text title
+                Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton(
-                      items: _priority.map((String dropdownStringItem) {
-                        return DropdownMenuItem<String>(
-                          value: dropdownStringItem,
-                          child: Text(dropdownStringItem),
-                        );
-                      }).toList(),
-                      style: textStyle,
-                      value: getPriorityAsString(note.priority),
-                      onChanged: (value) {
-                        setState(() {
-                          updatePriorityAsInt(value);
-                        });
-                      },
-                    ),
-                  )),
-              //children: edit text title
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: tecTitle,
-                  style: textStyle,
-                  decoration: InputDecoration(
-                      labelText: 'Title',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0))),
-                  onChanged: (value) {
-                    //update title
-                    updateTitle();
-                  },
+                  child: TextFormField(
+                    controller: tecTitle,
+                    style: textStyle,
+                    validator: (String value) {
+                      if (value.isEmpty) {
+                        return 'Please enter Title';
+                      } else {
+                        //update title
+                        updateTitle();
+                      }
+                    },
+                    decoration: InputDecoration(
+                        labelText: 'Title',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                    /*onChanged: (value) {
+
+                    },*/
+                  ),
                 ),
-              ),
-              //children: edit text Description
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: tecDescription,
-                  style: textStyle,
-                  decoration: InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0))),
-                  onChanged: (value) {
-                    //update description
-                    updateDescription();
-                  },
+                //children: edit text Description
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: tecDescription,
+                    style: textStyle,
+                    decoration: InputDecoration(
+                        labelText: 'Description',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                    onChanged: (value) {
+                      //update description
+                      updateDescription();
+                    },
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: RaisedButton(
-                          color: Theme
-                              .of(context)
-                              .primaryColorDark,
-                          textColor: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Save',
-                              textScaleFactor: 1.5,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: RaisedButton(
+                            color: Theme.of(context).primaryColorDark,
+                            textColor: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Save',
+                                textScaleFactor: 1.5,
+                              ),
                             ),
-                          ),
-                          onPressed: () {
-                            _save();
-                          }),
-                    ),
-                    SizedBox(
-                      width: 5.0,
-                    ),
-                    Expanded(
-                      child: RaisedButton(
-                          color: Theme
-                              .of(context)
-                              .primaryColorDark,
-                          textColor: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Delete',
-                              textScaleFactor: 1.5,
+                            onPressed: () {
+                              if (_formKey.currentState.validate()) {
+                                _save();
+                              }
+                            }),
+                      ),
+                      SizedBox(
+                        width: 5.0,
+                      ),
+                      Expanded(
+                        child: RaisedButton(
+                            color: Theme.of(context).primaryColorDark,
+                            textColor: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Delete',
+                                textScaleFactor: 1.5,
+                              ),
                             ),
-                          ),
-                          onPressed: () {
-                            _delete();
-                          }),
-                    )
-                  ],
-                ),
-              )
-            ],
+                            onPressed: () {
+                              _delete();
+                            }),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
